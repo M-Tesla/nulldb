@@ -1,6 +1,7 @@
 package storage;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class Tuple {
 
@@ -16,7 +17,7 @@ public class Tuple {
         this.timestamp = timestamp;
         this.payload = new byte[PAYLOAD_SIZE];
 
-        byte[] stringBytes = payloadStr.getBytes();
+        byte[] stringBytes = payloadStr.getBytes(StandardCharsets.UTF_8);
         int lengthToCopy = Math.min(stringBytes.length, PAYLOAD_SIZE);
         System.arraycopy(stringBytes, 0, this.payload, 0, lengthToCopy);
     }
@@ -44,6 +45,6 @@ public class Tuple {
     }
 
     public String getPayloadAsString() {
-        return new String(payload).trim();
+        return new String(payload, StandardCharsets.UTF_8).trim();
     }
 }

@@ -64,7 +64,9 @@ public class BTreeIndex {
 
                 if (tempTuple.getId() == targetId) {
                     targetPage.getData().position(readOffset);
-                    targetPage.getData().putLong(-1L);
+                    for (int b = 0; b < Tuple.TUPLE_SIZE; b++) {
+                        targetPage.getData().put((byte) 0x00);
+                    }
 
                     logger.info("Tombstone placed for ID: " + targetId + " at offset: " + readOffset);
                     return true;

@@ -11,8 +11,8 @@ import java.util.logging.Logger;
 public class BufferPoolManager {
 
     private static final Logger logger = Logger.getLogger(BufferPoolManager.class.getName());
-    private final Page[] pool;
 
+    private final Page[] pool;
     private final DiskManager diskManager;
     private final LruReplacer replacer;
     private final Map<Integer, Integer> pageTable;
@@ -31,7 +31,11 @@ public class BufferPoolManager {
         }
     }
 
-    public Page fetchPage(int pageId) {
+    public synchronized Page fetchPage(int pageId) {
+        if (pageId < 0) {
+            throw new IllegalArgumentException("Invalid page id: " + pageId);
+        }
+
         if (pageTable.containsKey(pageId)) {
             int frameId = pageTable.get(pageId);
             replacer.pin(frameId);
@@ -61,7 +65,7 @@ public class BufferPoolManager {
         return targetPage;
     }
 
-    public void unpinPage(int pageId, boolean isDirty) {
+    public synchronized void unpinPage(int pageId, boolean isDirty) {
         if (!pageTable.containsKey(pageId)) {
             return;
         }
@@ -72,7 +76,7 @@ public class BufferPoolManager {
         replacer.unpin(frameId);
     }
 
-    private int getAvailableFrame() {
+    private synchronized int getAvailableFrame() {
         if (!freeFrames.isEmpty()) {
             return freeFrames.poll();
         }
@@ -83,7 +87,7 @@ public class BufferPoolManager {
         return evictedFrame;
     }
 
-    public void flushAllPages() {
+    public synchronized void flushAllPages() {
         logger.info("Flushing all dirty pages to disk checkpoint...");
         for (Page page : pool) {
             if (page.getPageId() != -1 && page.isDirty()) {
